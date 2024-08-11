@@ -3,6 +3,7 @@ import cv2
 from torch.utils.data.dataset import Dataset
 import numpy as np
 import PIL
+from PIL import Image
 
 class PST_dataset(Dataset):
 
@@ -11,8 +12,7 @@ class PST_dataset(Dataset):
 
         assert split in ['train', 'test'], 'split must be "train"|"test"'
 
-        with open(os.path.join(data_dir, split+'.txt'), 'r') as f:
-            self.names = [name.strip() for name in f.readlines()]
+        self.names = os.listdir(os.path.join(data_dir, split, 'labels'))
 
         self.data_dir  = data_dir
         self.split     = split
@@ -78,10 +78,10 @@ class PST_dataset(Dataset):
             for func in self.transform:
                 image, label = func(image, label)
 
-            image = np.asarray(PIL.Image.fromarray(image).resize((self.input_w, self.input_h)))
+            image = np.asarray(Image.fromarray(image).resize((self.input_w, self.input_h)))
             image = image.astype('float32')
             image = np.transpose(image, (2,0,1))/255.0
-            label = np.asarray(PIL.Image.fromarray(label).resize((self.input_w, self.input_h), resample=PIL.Image.NEAREST))
+            label = np.asarray(Image.fromarray(label).resize((self.input_w, self.input_h), resample=Image.NEAREST))
             label = label.astype('int64')
             
             return torch.tensor(image), torch.tensor(label), name
@@ -101,3 +101,10 @@ class PST_dataset(Dataset):
             
             return torch.tensor(image), torch.tensor(image_mco)
 
+
+if __name__ == "__main__":
+    ds = PST_dataset(
+        data_dir=r"D:\longbh\datasets\PST900_RGBT_Dataset",
+        split='train'
+    )
+    print(ds.__getitem__(0))
